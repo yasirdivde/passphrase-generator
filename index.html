@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passphrase Generator — Create Strong, Memorable Passwords</title>
+    <meta name="description" content="Generate strong, memorable passphrases from random words. Free, secure, and offline.">
+j
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./images/icon-192.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#111111" />
+    <link rel="icon" type="image/png" href="images/icon-192.png" />
+    <link rel="apple-touch-icon" href="images/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="passphrase-generator" />
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #E5E7EB;
+            outline: none;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #0056A4;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin-top: -6px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 8px;
+            background: transparent;
+            border-radius: 4px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border: none;
+            border-radius: 50%;
+            background: #0056A4;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        input[type=range]::-moz-range-track {
+            height: 8px;
+            background: transparent;
+            border-radius: 4px;
+        }
+
+        /* Simple Block Loading Animation */
+        @keyframes spinBlock {
+            0%   { transform: rotate(0deg)   scale(1); }
+            50%  { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        .block-spinning {
+            animation: spinBlock 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        /* Separator Button Active State */
+        .sep-btn { transition: all 0.2s ease; }
+        .sep-btn.active { background-color: #0056A4; color: #ffffff; }
+        .sep-btn:not(.active) { background-color: #F3F4F6; color: #4B5563; }
+        .sep-btn:not(.active):hover { background-color: #E5E7EB; }
+
+        /* Passphrase Output */
+        #passphraseOutput {
+            word-break: normal;
+            overflow-wrap: break-word;
+            outline: none;
+            border-radius: 6px;
+            transition: background-color 0.15s ease;
+            cursor: text;
+        }
+        #passphraseOutput:hover { background-color: transparent; }
+        #passphraseOutput:focus { background-color: transparent; }
+
+        /* Highlight the OUTER container when input is focused */
+        #outputContainer {
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        #outputContainer:focus-within {
+            border-color: #0056A4 !important;
+            box-shadow: 0 0 0 3px rgba(0, 86, 164, 0.15) !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <!-- ================= HEADER ================= -->
+    <header class="bg-black text-white px-6 py-3 flex justify-start items-center sticky top-0 z-50">
+        <div class="flex items-center gap-2.5">
+            <img src="./images/icon-192.png"
+                 alt="Passphrase Generator"
+                 class="w-8 h-8 object-contain rounded-lg" />
+            <span class="text-sm font-extrabold tracking-wide">passphrase-generator</span>
+        </div>
+    </header>
+
+    <!-- ================= HERO SECTION ================= -->
+    <section class="bg-[#0056A4] pt-12 pb-28 px-4 text-center text-white relative">
+        <div class="max-w-3xl mx-auto">
+            <h1 class="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight">Passphrase Generator</h1>
+            <p class="text-base md:text-lg max-w-xl mx-auto opacity-95 leading-relaxed">
+                Use our free passphrase generator tool to create long, random passwords that are difficult for cybercriminals to crack.
+            </p>
+        </div>
+    </section>
+
+    <main class="flex-grow">
+
+        <!-- ================= GENERATOR CARD ================= -->
+        <div class="max-w-3xl mx-auto px-4 -mt-20 relative z-10 mb-12">
+            <div class="bg-white rounded-2xl shadow-xl p-5 md:p-7">
+
+                <!-- Output + Simple Block Icon -->
+                <div class="flex items-start gap-3 mb-5">
+                    <div id="outputContainer" class="flex-1 flex items-start justify-between border border-gray-300 rounded-xl p-3 bg-white min-h-[70px]">
+                        <p id="passphraseOutput"
+                           contenteditable="true"
+                           spellcheck="false"
+                           class="font-mono text-base md:text-lg text-gray-900 leading-relaxed flex-1 mr-2 py-1 px-1">
+                            Loading…
+                        </p>
+                        <button id="toggleVisibilityBtn" class="mt-1 text-gray-600 hover:text-gray-900 focus:outline-none transition-colors flex-shrink-0" title="Hide/Show passphrase">
+                            <span id="iconEye"><i data-lucide="eye" class="w-5 h-5"></i></span>
+                            <span id="iconEyeOff" class="hidden"><i data-lucide="eye-off" class="w-5 h-5"></i></span>
+                        </button>
+                    </div>
+
+                    <!-- Simple Block Icon with Loading Animation -->
+                    <button id="generateBtn"
+                            class="relative w-12 h-12 flex items-center justify-center text-gray-700 hover:bg-gray-100 rounded-xl transition-colors focus:outline-none flex-shrink-0"
+                            title="Generate new passphrase">
+                        <i id="blockIcon" data-lucide="box" class="w-7 h-7"></i>
+                    </button>
+                </div>
+
+                <!-- Quality + Copy -->
+                <div class="flex justify-between items-center mb-5">
+                    <div id="qualityContainer" class="flex items-center gap-2 font-semibold text-base text-green-600">
+                        <span id="qualityIcon">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        </span>
+                        <span id="qualityLabel">Calculating…</span>
+                    </div>
+                    <button id="copyBtn" class="bg-[#FFC107] p-2.5 rounded-xl hover:bg-yellow-400 transition-colors focus:outline-none shadow-sm" title="Copy passphrase">
+                        <span id="iconCopy"><i data-lucide="copy" class="w-5 h-5 text-black"></i></span>
+                        <span id="iconCheck" class="hidden"><i data-lucide="check" class="w-5 h-5 text-black"></i></span>
+                    </button>
+                </div>
+
+                <!-- Slider -->
+                <div class="mb-5">
+                    <input type="range" id="wordSlider" min="5" max="10" value="5" class="w-full">
+                    <div class="mt-1 font-semibold text-base text-gray-900"><span id="wordCountValue">5</span> words</div>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="flex items-center gap-6 mb-5">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="capitalsToggle" checked class="w-4 h-4 accent-[#0056A4] cursor-pointer">
+                        <span class="font-medium text-base text-gray-900">Capitals</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="numbersToggle" checked class="w-4 h-4 accent-[#0056A4] cursor-pointer">
+                        <span class="font-medium text-base text-gray-900">Numbers</span>
+                    </label>
+                </div>
+
+                <!-- Separators -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-medium text-base text-gray-900 mr-1">Separator</span>
+                    <div id="separatorGroup" class="flex flex-wrap gap-1.5">
+                        <button type="button" data-separator="-" class="sep-btn active w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">-</button>
+                        <button type="button" data-separator="." class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">.</button>
+                        <button type="button" data-separator="_" class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">_</button>
+                        <button type="button" data-separator="!" class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">!</button>
+                        <button type="button" data-separator="?" class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">?</button>
+                        <button type="button" data-separator="&" class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">&amp;</button>
+                        <button type="button" data-separator="=" class="sep-btn w-9 h-9 flex items-center justify-center rounded-lg font-mono text-base">=</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= 3 FEATURES ================= -->
+        <section class="max-w-5xl mx-auto px-4 mb-16">
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                    <span class="text-sm md:text-base text-gray-800 font-medium">100% Offline &amp; Private — nothing leaves your browser</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                    <span class="text-sm md:text-base text-gray-800 font-medium">Fully Customizable — length, capitals, numbers, separators</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 flex-shrink-0"></i>
+                    <span class="text-sm md:text-base text-gray-800 font-medium">Instant Generation — strong passphrases in one click</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= WHY USE A RANDOM PASSPHRASE ================= -->
+        <section class="max-w-3xl mx-auto px-4 py-10">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-4">Why Use a Random Passphrase?</h2>
+            <p class="text-base md:text-lg text-gray-800 leading-relaxed mb-4">
+                When creating passwords, users often resort to using short, <span class="font-bold">weak passwords</span> so they're easier to remember. Passwords that are short and weak can be cracked by cybercriminals instantly. Using a <span class="font-bold">random passphrase</span> is a more secure alternative because it is memorable and longer. Since a passphrase combines multiple, random words, it is <span class="font-bold">difficult for cybercriminals to crack</span>.
+            </p>
+        </section>
+
+        <!-- ================= PASSPHRASE BEST PRACTICES ================= -->
+        <section class="max-w-3xl mx-auto px-4 pb-16">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6">Passphrase Best Practices</h2>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">Don't use personal information in your passphrase</h3>
+                    <p class="text-base md:text-lg text-gray-800 leading-relaxed">
+                        You should avoid using <span class="font-bold">personal information</span> in your passphrases. Although a passphrase with personal information such as your dog's name may be easy to remember, it can easily be <span class="font-bold">cracked</span> by cybercriminals. Cybercriminals can find personal information about you online and use it to guess your passphrases.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">Use unique, random dictionary words</h3>
+                    <p class="text-base md:text-lg text-gray-800 leading-relaxed">
+                        When creating a passphrase, you should avoid using <span class="font-bold">common dictionary words</span> such as "password." Common dictionary words are <span class="font-bold">predictable</span> and can easily be guessed by attackers using automated tools. Instead, rely on a random generator to select unrelated words.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">Make it longer, not just more complex</h3>
+                    <p class="text-base md:text-lg text-gray-800 leading-relaxed">
+                        Adding more words to your passphrase makes it <span class="font-bold">exponentially harder to crack</span>. Each additional word increases the number of possible combinations, providing much stronger protection than adding complex symbols to a short password.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">Use a unique passphrase for every account</h3>
+                    <p class="text-base md:text-lg text-gray-800 leading-relaxed">
+                        <span class="font-bold">Never reuse</span> a passphrase across multiple websites or applications. If one service suffers a <span class="font-bold">data breach</span>, your other accounts will remain secure only if they use different passphrases. Reusing credentials puts all your accounts at risk.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">Store it in a password manager</h3>
+                    <p class="text-base md:text-lg text-gray-800 leading-relaxed">
+                        Memorizing multiple strong passphrases is difficult. Use a trusted <span class="font-bold">password manager</span> to securely store and autofill your credentials, so you only need to remember one strong <span class="font-bold">master password</span>. This ensures you never have to write them down or reuse them.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="border-t border-gray-200 bg-white py-6 mt-12">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <img src="./images/icon-192.png"
+                     alt="Passphrase Generator"
+                     class="w-5 h-5 object-contain rounded" />
+                <span class="text-sm font-bold text-gray-900">passphrase-generator</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <a href="./disclaimer.html" class="text-sm text-gray-600 hover:text-[#0056A4] font-medium transition-colors">Disclaimer</a>
+            </div>
+
+            <p class="text-sm text-gray-700 font-medium">
+                Developed by <span class="font-bold text-gray-900">Yasir Divde</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script type="module" src="./app.js"></script>
+    <script>
+    if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(registration => {
+        console.log("Service Worker registered:", registration.scope);
+      })
+      .catch(error => {
+        console.error("Service Worker registration failed:", error);
+      });
+  });
+}
+</script>
+</body>
+</html>
